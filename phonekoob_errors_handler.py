@@ -1,45 +1,59 @@
+from custom_exception import *
+
+
 def parse_input(user_input):
     cmd, *args = user_input.split()
     cmd = cmd.strip().lower()
     return cmd, *args
 
 
-def add_contact(
-    args, contacts
-):  # тре перевріка на "мало даних", "контакт вже є", "цифри у номері"
-    if len(args) < 2:
-        return "Not enought data, please try again"
+def input_error(func):
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ValueError:
+            return "Give me name and phone please."
+        except ExistError:
+            return "This name is already taken "
+        except WrongFormatError:
+            return "Sorry only numbers accepted to phone, try again"
+        except NotFoundError:
+            return f"There no {args[0][0]} in your contacts, please try to add it"
+        except NeedDataError:
+            return "Please give name for search"
+
+    return inner
+
+
+@input_error
+def add_contact(args, contacts):
     name, phone = args
     if name in contacts.keys():
-        return "The contact is alredy exist, please try another name"
+        raise ExistError
     if not phone.isdigit():
-        return "Sorry only numbers accepted to phone, try again"
+        raise WrongFormatError
     contacts[name] = phone
     return "Contact added."
 
 
-def change_contact(
-    args, contacts
-):  # тре перевріка на "мало даних", "нема контакту", "нічо не міняється ","цифри у номері"
-    if len(args) < 2:
-        return "Not enought data, please try again"
+@input_error
+def change_contact(args, contacts):
     name, phone = args
     if name not in contacts.keys():
-        return f"There no {name} in your contacts, please try to add it"
+        raise NotFoundError
     if not phone.isdigit():
-        return "Sorry only numbers accepted to phone, try again"
-    if contacts[name] == phone:
-        return "There is no changes at phone number"
+        raise WrongFormatError
     contacts[name] = phone
     return "Contact updated."
 
 
+@input_error
 def show_phone(args, contacts):  # тре перевріка на "мало даних", "нема контакту"
     if not args:
-        return "Please give name for search"
+        raise NeedDataError
     name = args[0]
     if name not in contacts.keys():
-        return f"There is no {name} in you phone book"
+        raise NotFoundError
     phone = contacts[name]
     return phone
 

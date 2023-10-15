@@ -15,8 +15,11 @@ class Name(Field):
 
 
 class Phone(Field):
-    def __init__(self, phone):
-        self.value = phone
+    def __init__(self, value):
+        if len(value) == 10 and value.isdigit():
+            self.value = value
+        else:
+            raise ValueError()
 
 
 class Record:
@@ -26,11 +29,7 @@ class Record:
         print("new user record created")
 
     def add_phone(self, phone):
-        if len(phone) == 10:
-            self.phones.append(Phone(phone))
-            print("Contact phones updated")
-        else:
-            print("Not valid phone number")
+        self.phones.append(Phone(phone))
 
     def remove_phone(self, phone):
         for p in self.phones:
